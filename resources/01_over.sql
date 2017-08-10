@@ -1,22 +1,14 @@
-/**
- * What is window in `window functions`
- */
 
--- region step 1) Employee progress
 
-SELECT
-  fullname,
-  fiscalyear
-FROM sales.vsalespersonsalesbyfiscalyearsdata person_sales;
+-- region Intern task completed
 
--- Note: ORDER BY is independent from the OVER
-
-SELECT
-  fullname,
-  salestotal,
-  fiscalyear,
-  salestotal - lag(salestotal) OVER (PARTITION BY fullname) AS diff
-FROM sales.vsalespersonsalesbyfiscalyearsdata person_sales;
+SELECT DISTINCT
+  department,
+  count(*) OVER (PARTITION BY department) AS count_dep,
+  jobtitle,
+  count(*) OVER (PARTITION BY jobtitle) AS count_title
+FROM humanresources.vemployeedepartment
+ORDER BY department;
 
 -- endregion
 
@@ -30,15 +22,27 @@ FROM sales.vsalespersonsalesbyfiscalyearsdata person_sales;
 
 
 
--- region Time series chart
 
--- region    Q: How to write it without lag / lead?
--- endregion A: you have to hardcode subtraction
+
+
+
+
+
+
+
+
+
+
+-- region FRAMING explained
 
 SELECT
-  lag(date) OVER () AS previous,
-  date    AS current
-FROM generate_series(:from, :to, '1 week') date;
+  n,
+  lag(n) OVER (ORDER BY n),
+  ROW_NUMBER() OVER (),
+  SUM(n) OVER (ORDER BY n)
+FROM
+  (VALUES (1), (2), (3), (3), (4), (5)) x(n)
+ORDER BY n;
 
 -- endregion
 
@@ -51,71 +55,71 @@ FROM generate_series(:from, :to, '1 week') date;
 
 
 
--- region step 2) Employee progress - variance from norm
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- region Real example) Employee progress
+
+SELECT
+  fullname,
+  fiscalyear,
+  salestotal
+FROM sales.vsalespersonsalesbyfiscalyearsdata person_sales;
+
+--
+
+SELECT
+  fullname,
+  fiscalyear,
+  salestotal,
+  salestotal - lag(salestotal) OVER (PARTITION BY fullname ORDER BY fiscalyear) AS diff
+FROM sales.vsalespersonsalesbyfiscalyearsdata person_sales
+ORDER BY fullname, fiscalyear;
+
+-- endregion
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- region Real example) Employee progress - deviation from norm
 
 SELECT
   fullname,
   salestotal,
   fiscalyear,
-  salestotal - lag(salestotal) OVER (PARTITION BY fullname ORDER BY fiscalyear) AS diff_prev_year,
   salestotal - avg(salestotal) OVER (PARTITION BY fiscalyear) AS diff_from_avg
 FROM sales.vsalespersonsalesbyfiscalyearsdata
 ORDER BY fullname, fiscalyear;
-
-SELECT
-  fiscalyear,
-  avg(salestotal)
-FROM sales.vsalespersonsalesbyfiscalyearsdata
-GROUP BY fiscalyear;
-
--- endregion
-
-
-
-
-
-
-
-
-
-
-
-
-
-
--- region Random order + keep original row
-
--- region Q: Use cases?
---        A: ads, random data verification, assigning tasks to people, test data generator
--- endregion
-
-SELECT DISTINCT ON (fullname)
-  fullname,
-  fiscalyear,
-  salestotal,
-  ROW_NUMBER() OVER(PARTITION BY fullname ORDER BY salestotal) AS original_order
-FROM sales.vsalespersonsalesbyfiscalyearsdata person_sales
-ORDER BY fullname, RANDOM();
-
--- endregion
-
-
-
-
-
-
-
-
-
-
-
-
--- region LAG: Removing duplicates
-
-SELECT
-  letter,
-  lag(letter) OVER (PARTITION BY letter)
-  IS NOT NULL AS to_remove
-FROM regexp_split_to_table('a a a b c c d e', E'\\s+') letter
 
 -- endregion

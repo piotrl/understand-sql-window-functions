@@ -34,13 +34,14 @@ FROM humanresources.vemployeedepartment;
 
 
 
--- region Intern task
+-- region Intern 1st task
 
 SELECT
   department,
+  jobtitle,
   count(*)
 FROM humanresources.vemployeedepartment
-GROUP BY department;
+GROUP BY department, jobtitle;
 
 -- endregion
 

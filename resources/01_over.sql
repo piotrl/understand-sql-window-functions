@@ -35,17 +35,28 @@ ORDER BY department;
 
 -- region FRAMING explained
 
+
 SELECT
-  n,
-  lag(n) OVER (ORDER BY n),
-  ROW_NUMBER() OVER (),
-  SUM(n) OVER (ORDER BY n)
-FROM
-  (VALUES (1), (2), (3), (3), (4), (5)) x(n)
-ORDER BY n;
+  letter,
+  count(*) OVER (),
+  ROW_NUMBER() OVER ()
+FROM regexp_split_to_table('a a a b c c d e', E'\\s+') letter;
 
 -- endregion
 
+
+-- region aggregations in frames
+
+SELECT
+  n,
+  lag(n) OVER (ORDER BY n) AS previous_record,
+  SUM(n) OVER (ORDER BY n) AS cumulative_sum,
+  AVG(n) OVER (ORDER BY n) AS moving_avg
+FROM
+  (VALUES (1), (2), (3), (4), (5)) x(n)
+ORDER BY n;
+
+-- endregion
 
 
 
@@ -88,28 +99,6 @@ FROM sales.vsalespersonsalesbyfiscalyearsdata person_sales
 ORDER BY fullname, fiscalyear;
 
 -- endregion
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 -- region Real example) Employee progress - deviation from norm

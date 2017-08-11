@@ -51,7 +51,7 @@ FROM sales.vsalespersonsalesbyfiscalyearsdata sale;
     sale.jobtitle,
     sale.salestotal,
 
-    SUM(sale.salestotal) OVER (
+    MAX(sale.salestotal) OVER (
       PARTITION BY sale.jobtitle
       ORDER BY sale.salestotal
       RANGE BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING
